@@ -1,0 +1,18 @@
+# Si site utilisateur : https://<pseudo>.github.io/
+# Si site de projet :   https://<pseudo>.github.io/<nom-du-repo>/
+baseURL = "<BASEURL>"
+title = "Site du mémoire"
+languageCode = "fr"
+enableRobotsTXT = true
+paginate = 10
+
+# Utilise un thème via Hugo Modules (pas besoin de sous-module Git)
+[module]
+  [[module.imports]]
+    path = "github.com/theNewDynamic/gohugo-theme-ananke"
+
+# Recommandé pour GitHub Pages : mettre le cache d'images au bon endroit
+[caches]
+  [caches.images]
+    dir = ':cacheDir/images'
+    
