@@ -1,0 +1,80 @@
+name: Build and deploy (Hugo + Pages)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Installe Go (nécessaire pour Hugo Modules)
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      # Installe Hugo Extended
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: '0.153.0'
+          extended: true
+
+      # Préflight: vérifier que la config est bien à la racine
+      - name: Preflight
+        run: |
+          pwd
+          ls -la
+          test -f "hugo.toml" -o -f "config.toml" -o -d "config" || (echo "Aucune config trouvée à la racine" && exit 1)
+          hugo version
+          go version
+
+      # Initialiser et récupérer les modules (dont Ananke v2)
+      - name: Init & get Hugo Modules
+        run: |
+          if [ ! -f go.mod ]; then
+            hugo mod init github.com/${{ github.repository }}
+          fi
+          hugo mod get -u ./...
+          hugo mod tidy
+          hugo mod graph
+
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Build site
+        run: |
+          hugo --minify \
+               --baseURL "${{ steps.pages.outputs.base_url }}/" \
+               --cacheDir "${{ runner.temp }}/hugo_cache"
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./public
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
