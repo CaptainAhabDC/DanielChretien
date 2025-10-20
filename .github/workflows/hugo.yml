@@ -21,20 +21,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Installe Go (nécessaire pour Hugo Modules)
+      # 1) Go pour les Hugo Modules
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
 
-      # Installe Hugo Extended
+      # 2) Hugo Extended (action officielle)
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v3
         with:
           hugo-version: '0.153.0'
           extended: true
 
-      # Préflight: vérifier que la config est bien à la racine
+      # 3) Préflight utile pour diagnostiquer
       - name: Preflight
         run: |
           pwd
@@ -43,7 +43,7 @@ jobs:
           hugo version
           go version
 
-      # Initialiser et récupérer les modules (dont Ananke v2)
+      # 4) Initialiser et récupérer les Modules (dont Ananke v2), puis vendoriser
       - name: Init & get Hugo Modules
         run: |
           if [ ! -f go.mod ]; then
@@ -51,18 +51,22 @@ jobs:
           fi
           hugo mod get -u ./...
           hugo mod tidy
+          hugo mod vendor
           hugo mod graph
 
+      # 5) Configurer Pages (base_url dynamique)
       - name: Configure Pages
         id: pages
         uses: actions/configure-pages@v5
 
+      # 6) Build Hugo (utilise les modules vendorisés dans _vendor)
       - name: Build site
         run: |
           hugo --minify \
                --baseURL "${{ steps.pages.outputs.base_url }}/" \
                --cacheDir "${{ runner.temp }}/hugo_cache"
 
+      # 7) Uploader l’artefact
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -78,3 +82,4 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
