@@ -1,0 +1,17 @@
+# --- config.toml (à la racine) ---
+# Mets l'URL exacte plus tard; pour l'instant Pages injectera la bonne via --baseURL.
+baseURL = "/"
+title = "Site du mémoire"
+languageCode = "fr"
+enableRobotsTXT = true
+paginate = 10
+
+# Thème via Hugo Modules (propre en CI)
+[module]
+  [[module.imports]]
+    path = "github.com/theNewDynamic/gohugo-theme-ananke"
+
+# Recommandé par la doc Hugo Pages : cache images dans :cacheDir
+[caches]
+  [caches.images]
+    dir = ":cacheDir/images"
