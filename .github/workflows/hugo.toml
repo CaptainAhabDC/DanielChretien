@@ -16,3 +16,19 @@ paginate = 10
   [caches.images]
     dir = ':cacheDir/images'
     
+      - name: Init Hugo Modules (create go.mod if missing)
+        run: |
+          if [ ! -f go.mod ]; then
+            hugo mod init github.com/${{ github.repository }}
+          fi
+          hugo mod get -u ./...
+          hugo mod tidy
+      - name: Cache Hugo/Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/hugo
+            ~/go/pkg/mod
+          key: modules-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            modules-
