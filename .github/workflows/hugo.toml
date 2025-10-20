@@ -9,7 +9,7 @@ paginate = 10
 # Utilise un thème via Hugo Modules (pas besoin de sous-module Git)
 [module]
   [[module.imports]]
-    path = "github.com/theNewDynamic/gohugo-theme-ananke"
+    path = "github.com/theNewDynamic/gohugo-theme-ananke/v2"
 
 # Recommandé pour GitHub Pages : mettre le cache d'images au bon endroit
 [caches]
