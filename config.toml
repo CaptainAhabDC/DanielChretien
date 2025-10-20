@@ -10,7 +10,7 @@ enableRobotsTXT = true
 # Thème via Hugo Modules (propre en CI)
 [module]
   [[module.imports]]
-    path = "github.com/theNewDynamic/gohugo-theme-ananke"
+    path = "github.com/theNewDynamic/gohugo-theme-ananke/v2"
 
 # Recommandé par la doc Hugo Pages : cache images dans :cacheDir
 [caches]
