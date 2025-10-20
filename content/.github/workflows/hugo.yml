@@ -1,0 +1,64 @@
+name: Build and deploy (Hugo + Pages)
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      SOURCE_DIR: .          # mets "site" si ton Hugo est dans ./site
+      HUGO_VERSION: 0.128.2  # version récente et stable
+    steps:
+      - uses: actions/checkout@v4
+
+      # Modules Hugo => on installe Go pour la résolution des modules
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      # Installe Hugo Extended (action officielle tierce)
+      - uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: ${{ env.HUGO_VERSION }}
+          extended: true
+      # Vérifications utiles (troubleshooting)
+      - name: Preflight (arbo + config)
+        run: |
+          pwd
+          ls -la "${SOURCE_DIR}"
+          test -f "${SOURCE_DIR}/config.toml" -o -f "${SOURCE_DIR}/hugo.toml" -o -d "${SOURCE_DIR}/config" || (echo "Config absente" && exit 1)
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Build
+        run: |
+          hugo --minify \
+               --source "${SOURCE_DIR}" \
+               --baseURL "${{ steps.pages.outputs.base_url }}/" \
+               --cacheDir "${{ runner.temp }}/hugo_cache"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./public
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
